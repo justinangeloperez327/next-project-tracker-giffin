@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState, useActionState, useRef, useEffect } from "react";
 import { saveProject } from "@/app/actions";
 import { categories, currency, type Project } from "@/lib/project-types";
@@ -142,7 +143,14 @@ export function ProjectRegister({ projects }: { projects: Project[] }) {
                 <tr key={p.id}>
                   <td className="data">{p.so_no}</td>
                   <td className="data">{p.jo_no}</td>
-                  <td className="font-semibold">{p.project_name}</td>
+                  <td className="font-semibold">
+                    <Link
+                      href={`/projects/${p.id}`}
+                      className="text-primary underline underline-offset-4"
+                    >
+                      {p.project_name}
+                    </Link>
+                  </td>
                   <td>{p.client}</td>
                   <td className="text-right data">
                     {currency(p.contract_price)}

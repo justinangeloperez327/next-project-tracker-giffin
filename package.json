@@ -9,9 +9,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test:e2e": "playwright test",
-    "db:migrate": "node scripts/migrate.mjs"
+    "db:migrate": "node scripts/migrate.mjs",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "next": "16.4.2",
@@ -35,5 +36,6 @@
     "@playwright/test": "^1.56.1",
     "tailwindcss": "^4.1.16",
     "@tailwindcss/postcss": "^4.1.16"
-  }
+  },
+  "type": "module"
 }

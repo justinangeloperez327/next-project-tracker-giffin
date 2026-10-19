@@ -24,11 +24,18 @@ Next.js App Router, React, TypeScript, Tailwind CSS v4 and shadcn/ui-style sourc
 
 Register from the homepage. No default credentials are created. Passwords require 12–128 characters.
 
+## Category trackers
+
+Open a project by selecting its name in Projects. Substation projects have separate Doors, Grating beam support, and Grating panel records. Each saves optional site measurement, drawing issued, delivery and installation dates, plus remarks. Blank dates can be saved or cleared; dates have no automatic sequence restriction. Bus Shelters projects save total and installed counts and calculate remaining shelters and completion percentage. Installed counts cannot exceed the total. Guardrail and Handrail trackers are deferred.
+
+Run `npm run db:migrate` with DATABASE_URL exported (or `node --env-file=.env.local scripts/migrate.mjs`) before using trackers, including for existing databases. The runner applies numbered migrations transactionally and records them; the original schema remains safe to reapply to pre-migration-ledger databases.
+
 ## Checks
 
 With `DATABASE_URL` exported and database migrated:
 
 ```sh
+npm test
 npm run typecheck
 npm run build
 npx playwright install chromium
