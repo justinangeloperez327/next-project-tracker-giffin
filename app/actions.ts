@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import {
   createSession,
   hashPassword,
@@ -33,11 +33,12 @@ export async function authenticate(
   const { email, password } = parsed.data;
   let id: string;
   try {
-    const limit = await db.query(
-      "INSERT INTO auth_attempts VALUES($1,1,now()) ON CONFLICT(email) DO UPDATE SET attempts=CASE WHEN auth_attempts.window_start < now()-interval '15 minutes' THEN 1 ELSE auth_attempts.attempts+1 END, window_start=CASE WHEN auth_attempts.window_start < now()-interval '15 minutes' THEN now() ELSE auth_attempts.window_start END RETURNING attempts",
-      [email],
-    );
-    if (limit.rows[0].attempts > 10)
+    const db = getDb();
+    // A single atomic, parameterized statement avoids a read/increment race.
+    const limit = await db.$queryRaw<
+      Array<{ attempts: number }>
+    >`INSERT INTO auth_attempts VALUES(${email},1,now()) ON CONFLICT(email) DO UPDATE SET attempts=CASE WHEN auth_attempts.window_start < now()-interval '15 minutes' THEN 1 ELSE auth_attempts.attempts+1 END, window_start=CASE WHEN auth_attempts.window_start < now()-interval '15 minutes' THEN now() ELSE auth_attempts.window_start END RETURNING attempts`;
+    if (limit[0].attempts > 10)
       return { error: "Too many attempts. Try again in 15 minutes." };
     if (mode === "register") {
       const name = String(form.get("name") ?? "").trim();
@@ -46,27 +47,27 @@ export async function authenticate(
       if (password !== form.get("confirmPassword"))
         return { error: "Passwords do not match." };
       id = randomUUID();
-      const result = await db.query(
-        "INSERT INTO users(id,name,email,password_hash) VALUES($1,$2,$3,$4) ON CONFLICT(email) DO NOTHING RETURNING id",
-        [id, name, email, hashPassword(password)],
-      );
-      if (!result.rowCount)
+      const result = await db.user.createMany({
+        data: [{ id, name, email, password_hash: hashPassword(password) }],
+        skipDuplicates: true,
+      });
+      if (!result.count)
         return { error: "Unable to create account. Try signing in instead." };
     } else {
-      const result = await db.query(
-        "SELECT id,password_hash FROM users WHERE email=$1",
-        [email],
-      );
+      const result = await db.user.findUnique({
+        where: { email },
+        select: { id: true, password_hash: true },
+      });
       const valid = verifyPassword(
         password,
-        result.rows[0]?.password_hash ?? hashPassword("dummy-password-value"),
+        result?.password_hash ?? hashPassword("dummy-password-value"),
       );
-      if (!result.rows[0] || !valid)
+      if (!result || !valid)
         return { error: "Email or password is incorrect." };
-      id = result.rows[0].id;
+      id = result.id;
     }
     await createSession(id);
-    await db.query("DELETE FROM auth_attempts WHERE email=$1", [email]);
+    await db.authAttempt.deleteMany({ where: { email } });
   } catch {
     return {
       error:
@@ -79,7 +80,7 @@ export async function logout() {
   const cookieStore = await cookies();
   const token = cookieStore.get("giffin_session")?.value;
   if (token)
-    await db.query("DELETE FROM sessions WHERE token_hash=$1", [digest(token)]);
+    await getDb().session.deleteMany({ where: { token_hash: digest(token) } });
   cookieStore.delete("giffin_session");
   redirect("/");
 }
@@ -104,19 +105,17 @@ export async function saveProject(
     };
   const p = data.data;
   try {
-    await db.query(
-      "INSERT INTO projects VALUES($1,$2,$3,$4,$5,$6,$7,$8,now())",
-      [
-        randomUUID(),
-        user.id,
-        p.so,
-        p.jo,
-        p.name,
-        p.client,
-        p.price,
-        p.category,
-      ],
-    );
+    await getDb().project.create({
+      data: {
+        user_id: user.id,
+        so_no: p.so,
+        jo_no: p.jo,
+        project_name: p.name,
+        client: p.client,
+        contract_price: p.price,
+        category: p.category,
+      },
+    });
   } catch {
     return {
       error:
@@ -135,7 +134,7 @@ export async function updateProfile(
   const name = String(form.get("name") ?? "").trim();
   if (name.length < 2 || name.length > 100)
     return { error: "Enter a name between 2 and 100 characters." };
-  await db.query("UPDATE users SET name=$1 WHERE id=$2", [name, user.id]);
+  await getDb().user.update({ where: { id: user.id }, data: { name } });
   revalidatePath("/profile");
   return { success: "Profile updated." };
 }

@@ -1,17 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { currency, type Project } from "@/lib/project-types";
-import {
-  substationItems,
-  type SubstationTracker,
-  type BusShelterTracker,
-} from "@/lib/tracker-types";
+import { getDb } from "@/lib/db";
+import { currency } from "@/lib/project-types";
+import { substationItems, type SubstationTracker } from "@/lib/tracker-types";
 import {
   SubstationItemForm,
   BusShelterForm,
 } from "@/components/project-trackers";
+import { AddDoorType, DoorTypeForm } from "@/components/door-types";
+import { dateInputs } from "@/lib/tracker-dates";
 import { z } from "zod";
 export default async function ProjectTracker({
   params,
@@ -21,30 +19,34 @@ export default async function ProjectTracker({
   const user = await requireUser();
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
-  const project = (
-    await db.query<Project>(
-      "SELECT * FROM projects WHERE id=$1 AND user_id=$2",
-      [id, user.id],
-    )
-  ).rows[0];
+  const project = await getDb().project.findFirst({
+    where: { id, user_id: user.id },
+  });
   if (!project) notFound();
-  let substation: SubstationTracker[] = [];
-  let shelters: BusShelterTracker | null = null;
-  if (project.category === "Substation")
-    substation = (
-      await db.query<SubstationTracker>(
-        `SELECT item,to_char(site_measurement_date,'YYYY-MM-DD') AS site_measurement_date,to_char(drawing_issued_date,'YYYY-MM-DD') AS drawing_issued_date,to_char(delivery_date,'YYYY-MM-DD') AS delivery_date,to_char(installation_date,'YYYY-MM-DD') AS installation_date,remarks FROM substation_trackers WHERE project_id=$1`,
-        [id],
-      )
-    ).rows;
-  if (project.category === "Bus Shelters")
-    shelters =
-      (
-        await db.query<BusShelterTracker>(
-          "SELECT total,installed FROM bus_shelter_trackers WHERE project_id=$1",
-          [id],
-        )
-      ).rows[0] ?? null;
+  const substation =
+    project.category === "Substation"
+      ? (
+          await getDb().substationTracker.findMany({
+            where: { project_id: id },
+          })
+        ).map(dateInputs)
+      : [];
+  const doorTypes =
+    project.category === "Substation"
+      ? (
+          await getDb().doorTypeTracker.findMany({
+            where: { project_id: id },
+            orderBy: [{ name: "asc" }, { id: "asc" }],
+          })
+        ).map(dateInputs)
+      : [];
+  const shelters =
+    project.category === "Bus Shelters"
+      ? await getDb().busShelterTracker.findUnique({
+          where: { project_id: id },
+          select: { total: true, installed: true },
+        })
+      : null;
   return (
     <>
       <Link
@@ -61,7 +63,7 @@ export default async function ProjectTracker({
             ["SO No", project.so_no],
             ["JO No", project.jo_no],
             ["Client", project.client],
-            ["Contract price", currency(project.contract_price)],
+            ["Contract price", currency(project.contract_price.toFixed(2))],
           ].map(([label, value]) => (
             <div key={label}>
               <dt className="muted text-xs mb-1">{label}</dt>
@@ -77,23 +79,48 @@ export default async function ProjectTracker({
             Record each item’s dates and remarks. Leave dates blank until they
             are known.
           </p>
+          <section aria-labelledby="doors-heading" className="mb-8">
+            <h2 id="doors-heading">Doors</h2>
+            <p className="muted text-sm mt-2 mb-4">
+              Add the door types used on this project. Each type has its own
+              dates and remarks.
+            </p>
+            <AddDoorType projectId={id} />
+            {doorTypes.length === 0 && (
+              <p className="muted text-sm my-5">
+                No door types yet. Add your first type above.
+              </p>
+            )}
+            <div className="grid gap-5 mt-5">
+              {doorTypes.map((tracker) => (
+                <DoorTypeForm
+                  key={tracker.id}
+                  projectId={id}
+                  tracker={tracker}
+                />
+              ))}
+            </div>
+          </section>
           <div className="grid gap-5">
-            {substationItems.map((item) => (
-              <SubstationItemForm
-                key={item}
-                projectId={id}
-                tracker={
-                  substation.find((row) => row.item === item) ?? {
-                    item,
-                    site_measurement_date: null,
-                    drawing_issued_date: null,
-                    delivery_date: null,
-                    installation_date: null,
-                    remarks: "",
+            {substationItems
+              .filter((item) => item !== "Doors")
+              .map((item) => (
+                <SubstationItemForm
+                  key={item}
+                  projectId={id}
+                  tracker={
+                    (substation.find((row) => row.item === item) as
+                      SubstationTracker | undefined) ?? {
+                      item,
+                      site_measurement_date: null,
+                      drawing_issued_date: null,
+                      delivery_date: null,
+                      installation_date: null,
+                      remarks: "",
+                    }
                   }
-                }
-              />
-            ))}
+                />
+              ))}
           </div>
         </>
       ) : project.category === "Bus Shelters" ? (

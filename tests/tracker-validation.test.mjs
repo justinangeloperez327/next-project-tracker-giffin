@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   substationSchema,
   busShelterSchema,
+  doorTypeIdentitySchema,
+  doorTypeSchema,
 } from "../lib/tracker-validation.ts";
 const projectId = "93683de4-1277-4457-91db-549c0286f412";
 const blank = {
@@ -93,6 +95,27 @@ test("project identifiers are validated for each tracker", () => {
       total: "6",
       installed: "1",
     }).success,
+    false,
+  );
+});
+
+test("door names are customizable, trimmed, and length validated", () => {
+  assert.equal(
+    doorTypeIdentitySchema.parse({ projectId, name: "  Double leaf steel  " })
+      .name,
+    "Double leaf steel",
+  );
+  for (const name of ["", "   ", "x".repeat(121)])
+    assert.equal(
+      doorTypeIdentitySchema.safeParse({ projectId, name }).success,
+      false,
+    );
+});
+test("door type dates validate independently of the name", () => {
+  const data = { ...blank, id: projectId, name: "Fire door" };
+  assert.equal(doorTypeSchema.safeParse(data).success, true);
+  assert.equal(
+    doorTypeSchema.safeParse({ ...data, delivery_date: "2026-02-30" }).success,
     false,
   );
 });

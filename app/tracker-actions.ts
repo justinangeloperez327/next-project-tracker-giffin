@@ -1,8 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { substationSchema, busShelterSchema } from "@/lib/tracker-validation";
+import { toDate } from "@/lib/tracker-dates";
 import type { FormState } from "./actions";
 export async function saveSubstationTracker(
   _previous: FormState,
@@ -15,24 +16,32 @@ export async function saveSubstationTracker(
       error: "Check the dates and keep remarks within 4,000 characters.",
     };
   const d = result.data;
+  if (d.item === "Doors")
+    return { error: "Use the named door types to track doors." };
   try {
-    const saved = await db.query(
-      `INSERT INTO substation_trackers(project_id,item,site_measurement_date,drawing_issued_date,delivery_date,installation_date,remarks)
-      SELECT id,$3,$4::date,$5::date,$6::date,$7::date,$8 FROM projects WHERE id=$1 AND user_id=$2 AND category='Substation'
-      ON CONFLICT(project_id,item) DO UPDATE SET site_measurement_date=EXCLUDED.site_measurement_date,drawing_issued_date=EXCLUDED.drawing_issued_date,delivery_date=EXCLUDED.delivery_date,installation_date=EXCLUDED.installation_date,remarks=EXCLUDED.remarks RETURNING project_id`,
-      [
-        d.projectId,
-        user.id,
-        d.item,
-        d.site_measurement_date,
-        d.drawing_issued_date,
-        d.delivery_date,
-        d.installation_date,
-        d.remarks,
-      ],
-    );
-    if (!saved.rowCount)
-      return { error: "This substation project is unavailable." };
+    const saved = await getDb().$transaction(async (tx) => {
+      if (
+        !(await tx.project.findFirst({
+          where: { id: d.projectId, user_id: user.id, category: "Substation" },
+          select: { id: true },
+        }))
+      )
+        return false;
+      const data = {
+        site_measurement_date: toDate(d.site_measurement_date),
+        drawing_issued_date: toDate(d.drawing_issued_date),
+        delivery_date: toDate(d.delivery_date),
+        installation_date: toDate(d.installation_date),
+        remarks: d.remarks,
+      };
+      await tx.substationTracker.upsert({
+        where: { project_id_item: { project_id: d.projectId, item: d.item } },
+        create: { project_id: d.projectId, item: d.item, ...data },
+        update: data,
+      });
+      return true;
+    });
+    if (!saved) return { error: "This substation project is unavailable." };
   } catch {
     return { error: "Could not save the tracker. Please try again." };
   }
@@ -52,14 +61,30 @@ export async function saveBusShelterTracker(
     };
   const d = result.data;
   try {
-    const saved = await db.query(
-      `INSERT INTO bus_shelter_trackers(project_id,total,installed)
-      SELECT id,$3,$4 FROM projects WHERE id=$1 AND user_id=$2 AND category='Bus Shelters'
-      ON CONFLICT(project_id) DO UPDATE SET total=EXCLUDED.total,installed=EXCLUDED.installed RETURNING project_id`,
-      [d.projectId, user.id, d.total, d.installed],
-    );
-    if (!saved.rowCount)
-      return { error: "This bus shelter project is unavailable." };
+    const saved = await getDb().$transaction(async (tx) => {
+      if (
+        !(await tx.project.findFirst({
+          where: {
+            id: d.projectId,
+            user_id: user.id,
+            category: "Bus Shelters",
+          },
+          select: { id: true },
+        }))
+      )
+        return false;
+      await tx.busShelterTracker.upsert({
+        where: { project_id: d.projectId },
+        create: {
+          project_id: d.projectId,
+          total: d.total,
+          installed: d.installed,
+        },
+        update: { total: d.total, installed: d.installed },
+      });
+      return true;
+    });
+    if (!saved) return { error: "This bus shelter project is unavailable." };
   } catch {
     return { error: "Could not save the shelter counts. Please try again." };
   }

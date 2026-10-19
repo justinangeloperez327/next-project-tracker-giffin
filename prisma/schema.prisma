@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          String
+  email         String    @unique
+  password_hash String
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  sessions      Session[]
+  projects      Project[]
+
+  @@map("users")
+}
+
+model Session {
+  token_hash String   @id
+  user_id    String   @db.Uuid
+  expires_at DateTime @db.Timestamptz(6)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([expires_at], map: "sessions_expiry")
+  @@map("sessions")
+}
+
+model AuthAttempt {
+  email        String   @id
+  attempts     Int
+  window_start DateTime @db.Timestamptz(6)
+
+  @@map("auth_attempts")
+}
+
+model Project {
+  id                  String              @id @default(uuid()) @db.Uuid
+  user_id             String              @db.Uuid
+  so_no               String
+  jo_no               String
+  project_name        String
+  client              String
+  contract_price      Decimal             @db.Decimal(16, 2)
+  category            String
+  created_at          DateTime            @default(now()) @db.Timestamptz(6)
+  user                User                @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  substation_trackers SubstationTracker[]
+  door_types          DoorTypeTracker[]
+  bus_shelter_tracker BusShelterTracker?
+
+  @@unique([user_id, so_no, jo_no], map: "projects_user_id_so_no_jo_no_key")
+  @@index([user_id], map: "projects_owner")
+  @@map("projects")
+}
+
+model SubstationTracker {
+  project_id            String    @db.Uuid
+  item                  String
+  site_measurement_date DateTime? @db.Date
+  drawing_issued_date   DateTime? @db.Date
+  delivery_date         DateTime? @db.Date
+  installation_date     DateTime? @db.Date
+  remarks               String    @default("")
+  project               Project   @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([project_id, item])
+  @@map("substation_trackers")
+}
+
+model DoorTypeTracker {
+  id                    String    @id @default(uuid()) @db.Uuid
+  project_id            String    @db.Uuid
+  name                  String
+  site_measurement_date DateTime? @db.Date
+  drawing_issued_date   DateTime? @db.Date
+  delivery_date         DateTime? @db.Date
+  installation_date     DateTime? @db.Date
+  remarks               String    @default("")
+  project               Project   @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("door_type_trackers")
+}
+
+model BusShelterTracker {
+  project_id String  @id @db.Uuid
+  total      Int
+  installed  Int
+  project    Project @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("bus_shelter_trackers")
+}

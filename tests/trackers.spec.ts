@@ -37,7 +37,12 @@ test("substation items save independently, retain dates after reload, and suppor
 }) => {
   await register(page);
   await createProject(page, "Substation", "Substation Tracker Test");
+  await page.getByLabel("New door type").fill("Doors");
+  await page
+    .getByRole("button", { name: "Add door type", exact: true })
+    .click();
   const doors = page.getByRole("group", { name: "Doors", exact: true });
+  await expect(doors).toBeVisible();
   await doors
     .getByLabel("Site measurement date", { exact: true })
     .fill("2026-10-20");
@@ -49,8 +54,8 @@ test("substation items save independently, retain dates after reload, and suppor
     .getByLabel("Installation date", { exact: true })
     .fill("2026-10-26");
   await doors.getByLabel("Remarks", { exact: true }).fill("Doors ready");
-  await doors.getByRole("button", { name: "Save doors" }).click();
-  await expect(doors.getByRole("status")).toHaveText("Doors tracker saved.");
+  await doors.getByRole("button", { name: "Save door type" }).click();
+  await expect(doors.getByRole("status")).toHaveText("Door type saved.");
   const beams = page.getByRole("group", {
     name: "Grating beam support",
     exact: true,
@@ -83,7 +88,7 @@ test("substation items save independently, retain dates after reload, and suppor
   await expect(beams.getByLabel("Remarks")).toHaveValue("Awaiting measurement");
   await expect(panels.getByLabel("Delivery date")).toHaveValue("2026-11-02");
   await doors.getByLabel("Delivery date").fill("");
-  await doors.getByRole("button", { name: "Save doors" }).click();
+  await doors.getByRole("button", { name: "Save door type" }).click();
   await expect(doors.getByRole("status")).toBeVisible();
   await page.reload();
   await expect(doors.getByLabel("Delivery date")).toHaveValue("");
@@ -99,16 +104,22 @@ test("substation items save independently, retain dates after reload, and suppor
   ).toBeVisible();
   // A forged project ID must also be rejected at the mutation boundary.
   await createProject(other, "Substation", "Other Account Project");
-  await other
+  const otherBeams = other.getByRole("group", {
+    name: "Grating beam support",
+    exact: true,
+  });
+  // The hidden project identifier is outside the fieldset, in the enclosing form.
+  await otherBeams
+    .locator("..")
     .locator('input[name="projectId"]')
-    .first()
     .evaluate((input, id) => {
       (input as HTMLInputElement).value = id;
     }, projectURL.split("/").pop()!);
-  const otherDoors = other.getByRole("group", { name: "Doors", exact: true });
-  await otherDoors.getByLabel("Remarks").fill("Unauthorized change");
-  await otherDoors.getByRole("button", { name: "Save doors" }).click();
-  await expect(otherDoors.getByRole("alert")).toHaveText(
+  await otherBeams.getByLabel("Remarks").fill("Unauthorized change");
+  await otherBeams
+    .getByRole("button", { name: "Save grating beam support" })
+    .click();
+  await expect(otherBeams.getByRole("alert")).toHaveText(
     "This substation project is unavailable.",
   );
   await page.reload();
@@ -157,4 +168,49 @@ test("bus shelter counts persist and reject installed counts above the total; ot
       exact: false,
     }),
   ).toBeVisible();
+});
+
+test("door types can be added, renamed and tracked independently", async ({
+  page,
+}) => {
+  await register(page);
+  await createProject(page, "Substation", "Custom Door Types");
+  for (const name of ["Steel door", "Fire door", "Aluminium door"]) {
+    await page.getByLabel("New door type").fill(name);
+    await page
+      .getByRole("button", { name: "Add door type", exact: true })
+      .click();
+    await expect(page.getByRole("group", { name, exact: true })).toBeVisible();
+  }
+  const steel = page.getByRole("group", { name: "Steel door", exact: true });
+  await steel.getByLabel("Delivery date").fill("2026-11-03");
+  await steel.getByLabel("Door type name").fill("Double leaf steel door");
+  await steel
+    .getByRole("button", { name: "Save door type", exact: true })
+    .click();
+  await expect(
+    page.getByRole("group", { name: "Double leaf steel door", exact: true }),
+  ).toBeVisible();
+  const fire = page.getByRole("group", { name: "Fire door", exact: true });
+  await fire.getByLabel("Remarks").fill("Awaiting drawing");
+  await fire
+    .getByRole("button", { name: "Save door type", exact: true })
+    .click();
+  await expect(fire.getByRole("status")).toHaveText("Door type saved.");
+  await page.reload();
+  await expect(
+    page
+      .getByRole("group", { name: "Double leaf steel door", exact: true })
+      .getByLabel("Delivery date"),
+  ).toHaveValue("2026-11-03");
+  await expect(fire.getByLabel("Delivery date")).toHaveValue("");
+  await expect(fire.getByLabel("Remarks")).toHaveValue("Awaiting drawing");
+  await expect(
+    page.getByRole("group", { name: "Aluminium door", exact: true }),
+  ).toBeVisible();
+  await page.getByLabel("New door type").fill(" FIRE DOOR ");
+  await page
+    .getByRole("button", { name: "Add door type", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("already exists");
 });

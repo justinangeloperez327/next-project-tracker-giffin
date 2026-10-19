@@ -18,3 +18,8 @@ export type SubstationTracker = {
   remarks: string;
 };
 export type BusShelterTracker = { total: number; installed: number };
+
+export type DoorTypeTracker = Omit<SubstationTracker, "item"> & {
+  id: string;
+  name: string;
+};

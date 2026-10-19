@@ -32,3 +32,11 @@ export const busShelterSchema = z
     message: "Installed shelters cannot exceed total shelters.",
     path: ["installed"],
   });
+
+export const doorTypeIdentitySchema = z.object({
+  projectId: z.uuid(),
+  name: z.string().trim().min(1).max(120),
+});
+export const doorTypeSchema = substationSchema
+  .omit({ item: true })
+  .extend({ id: z.uuid(), name: z.string().trim().min(1).max(120) });

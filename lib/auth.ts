@@ -7,7 +7,7 @@ import {
 } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { db } from "./db";
+import { getDb } from "./db";
 export function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   return salt + ":" + scryptSync(password, salt, 64).toString("hex");
@@ -23,12 +23,11 @@ export const digest = (token: string) =>
 export const currentUser = cache(async function currentUser() {
   const token = (await cookies()).get("giffin_session")?.value;
   if (!token) return null;
-  const result = await db.query(
-    "SELECT u.id,u.name,u.email FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.token_hash=$1 AND s.expires_at>now()",
-    [digest(token)],
-  );
-  return result.rows[0] as
-    { id: string; name: string; email: string } | undefined;
+  const session = await getDb().session.findFirst({
+    where: { token_hash: digest(token), expires_at: { gt: new Date() } },
+    select: { user: { select: { id: true, name: true, email: true } } },
+  });
+  return session?.user;
 });
 export async function requireUser() {
   const user = await currentUser();
@@ -37,11 +36,15 @@ export async function requireUser() {
 }
 export async function createSession(id: string) {
   const token = randomBytes(32).toString("hex");
-  await db.query("DELETE FROM sessions WHERE expires_at < now()");
-  await db.query("INSERT INTO sessions VALUES($1,$2,now()+interval '7 days')", [
-    digest(token),
-    id,
-  ]);
+  const db = getDb();
+  await db.session.deleteMany({ where: { expires_at: { lt: new Date() } } });
+  await db.session.create({
+    data: {
+      token_hash: digest(token),
+      user_id: id,
+      expires_at: new Date(Date.now() + 604800000),
+    },
+  });
   (await cookies()).set("giffin_session", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
