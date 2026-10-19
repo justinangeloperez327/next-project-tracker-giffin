@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+:root {
+  --background: #f5f7fa;
+  --foreground: #17263b;
+  --surface: #ffffff;
+  --muted: #eaf0f6;
+  --border: #d8e0e9;
+  --primary: #2456a6;
+  --primary-foreground: #fff;
+  --secondary: #53657d;
+}
+.dark {
+  --background: #101720;
+  --foreground: #e5edf7;
+  --surface: #17212e;
+  --muted: #202e40;
+  --border: #344256;
+  --primary: #91b8ff;
+  --primary-foreground: #10233f;
+  --secondary: #a8b9cf;
+}
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+}
+* {
+  border-color: var(--border);
+}
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 15px;
+}
+h1,
+h2,
+h3 {
+  font-family: "Arial Narrow", Arial, sans-serif;
+  letter-spacing: -0.035em;
+  font-weight: 650;
+}
+h1 {
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.15;
+}
+h2 {
+  font-size: 23px;
+}
+a,
+button,
+input,
+select {
+  touch-action: manipulation;
+}
+button,
+a,
+input,
+select {
+  outline-offset: 4px;
+}
+a:focus-visible,
+button:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary);
+}
+button {
+  cursor: pointer;
+}
+label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+select {
+  min-height: 44px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0 12px;
+}
+p {
+  line-height: 1.7;
+}
+small,
+.muted {
+  color: var(--secondary);
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.eyebrow {
+  font-family: monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--secondary);
+}
+.data {
+  font-variant-numeric: tabular-nums;
+  font-family: monospace;
+}
+th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--secondary);
+  background: var(--muted);
+}
+th,
+td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  font-size: 13px;
+}
+tbody tr:hover {
+  background: var(--muted);
+}
+::selection {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
