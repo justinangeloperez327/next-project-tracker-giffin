@@ -108,17 +108,19 @@ test("substation items save independently, retain dates after reload, and suppor
     name: "Grating beam support",
     exact: true,
   });
-  // The hidden project identifier is outside the fieldset, in the enclosing form.
-  await otherBeams
-    .locator("..")
-    .locator('input[name="projectId"]')
-    .evaluate((input, id) => {
-      (input as HTMLInputElement).value = id;
-    }, projectURL.split("/").pop()!);
+  // Alter the submitted payload: React can restore controlled hidden inputs.
+  const forgedForm = otherBeams.locator("..");
+  await forgedForm.evaluate((form, id) => {
+    form.addEventListener("formdata", (event) => {
+      (event as FormDataEvent).formData.set("projectId", id);
+      form.setAttribute("data-forged", "true");
+    });
+  }, projectURL.split("/").pop()!);
   await otherBeams.getByLabel("Remarks").fill("Unauthorized change");
   await otherBeams
     .getByRole("button", { name: "Save grating beam support" })
     .click();
+  await expect(forgedForm).toHaveAttribute("data-forged", "true");
   await expect(otherBeams.getByRole("alert")).toHaveText(
     "This substation project is unavailable.",
   );
@@ -149,7 +151,7 @@ test("bus shelter counts persist and reject installed counts above the total; ot
   ).toHaveValue("2");
   await page.getByLabel("Installed shelters", { exact: true }).fill("7");
   await page.getByRole("button", { name: "Save shelter counts" }).click();
-  await expect(page.getByRole("alert")).toContainText(
+  await expect(page.getByRole("main").getByRole("alert")).toContainText(
     "cannot exceed the total",
   );
   await page.reload();
@@ -212,5 +214,5 @@ test("door types can be added, renamed and tracked independently", async ({
   await page
     .getByRole("button", { name: "Add door type", exact: true })
     .click();
-  await expect(page.getByRole("alert")).toContainText("already exists");
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("already exists");
 });
