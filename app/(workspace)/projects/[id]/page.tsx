@@ -49,13 +49,10 @@ export default async function ProjectTracker({
       : null;
   return (
     <>
-      <Link
-        href="/projects"
-        className="text-sm text-primary underline underline-offset-4"
-      >
+      <Link href="/projects" className="text-xs muted hover:text-primary">
         Back to projects
       </Link>
-      <header className="mt-6 mb-8">
+      <header className="mt-5 mb-7">
         <p className="eyebrow mb-3">{project.category} / Project tracker</p>
         <h1>{project.project_name}</h1>
         <dl className="flex flex-wrap gap-x-8 gap-y-4 mt-5 text-sm">
@@ -79,7 +76,10 @@ export default async function ProjectTracker({
             Record each item’s dates and remarks. Leave dates blank until they
             are known.
           </p>
-          <section aria-labelledby="doors-heading" className="mb-8">
+          <section
+            aria-labelledby="doors-heading"
+            className="tracker-section mb-7"
+          >
             <h2 id="doors-heading">Doors</h2>
             <p className="muted text-sm mt-2 mb-4">
               Add the door types used on this project. Each type has its own

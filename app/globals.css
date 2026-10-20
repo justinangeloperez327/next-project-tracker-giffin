@@ -1,24 +1,28 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 :root {
-  --background: #f5f7fa;
-  --foreground: #17263b;
+  color-scheme: light;
+  --background: #f7f8f7;
+  --foreground: #252c29;
   --surface: #ffffff;
-  --muted: #eaf0f6;
-  --border: #d8e0e9;
-  --primary: #2456a6;
-  --primary-foreground: #fff;
-  --secondary: #53657d;
+  --muted: #edf1ee;
+  --border: #dfe5e1;
+  --primary: #456453;
+  --primary-foreground: #ffffff;
+  --secondary: #5e6b63;
+  --sidebar: #f1f4f2;
 }
 .dark {
-  --background: #101720;
-  --foreground: #e5edf7;
-  --surface: #17212e;
-  --muted: #202e40;
-  --border: #344256;
-  --primary: #91b8ff;
-  --primary-foreground: #10233f;
-  --secondary: #a8b9cf;
+  color-scheme: dark;
+  --background: #171c19;
+  --foreground: #e3eae5;
+  --surface: #1e2521;
+  --muted: #2b352e;
+  --border: #39453d;
+  --primary: #a4c3ae;
+  --primary-foreground: #19281e;
+  --secondary: #a6b4aa;
+  --sidebar: #1a211d;
 }
 @theme inline {
   --color-background: var(--background);
@@ -35,38 +39,36 @@ body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 15px;
+  font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
 }
 h1,
 h2,
 h3 {
-  font-family: "Arial Narrow", Arial, sans-serif;
-  letter-spacing: -0.035em;
-  font-weight: 650;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  line-height: 1.3;
 }
 h1 {
-  font-size: clamp(28px, 3vw, 40px);
-  line-height: 1.15;
+  font-size: clamp(25px, 2.4vw, 32px);
 }
 h2 {
-  font-size: 23px;
+  font-size: 17px;
 }
 a,
 button,
 input,
-select {
+select,
+textarea {
   touch-action: manipulation;
-}
-button,
-a,
-input,
-select {
-  outline-offset: 4px;
+  outline-offset: 3px;
 }
 a:focus-visible,
 button:focus-visible,
-select:focus-visible {
+select:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--primary);
 }
 button {
@@ -75,18 +77,23 @@ button {
 label {
   display: grid;
   gap: 8px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
+}
+input,
+select,
+textarea {
+  font: inherit;
 }
 select {
   min-height: 44px;
-  background: var(--background);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 0 12px;
 }
 p {
-  line-height: 1.7;
+  line-height: 1.65;
 }
 small,
 .muted {
@@ -95,40 +102,124 @@ small,
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 5px;
 }
 .eyebrow {
-  font-family: monospace;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   color: var(--secondary);
 }
 .data {
   font-variant-numeric: tabular-nums;
-  font-family: monospace;
+  font-family: Consolas, "SFMono-Regular", monospace;
+  letter-spacing: -0.025em;
 }
 th {
   text-align: left;
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
   color: var(--secondary);
-  background: var(--muted);
+  background: var(--background);
 }
 th,
 td {
-  padding: 16px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 td {
   font-size: 13px;
 }
+tbody tr:last-child td {
+  border-bottom: 0;
+}
 tbody tr:hover {
-  background: var(--muted);
+  background: var(--background);
 }
 ::selection {
   background: var(--primary);
   color: var(--primary-foreground);
+}
+.workspace-sidebar {
+  background: var(--sidebar);
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  white-space: nowrap;
+  color: var(--secondary);
+  font-size: 13px;
+}
+.nav-link:hover {
+  background: var(--muted);
+  color: var(--foreground);
+}
+.nav-link[aria-current="page"] {
+  background: var(--muted);
+  color: var(--foreground);
+  font-weight: 600;
+}
+.nav-link[aria-current="page"] svg {
+  color: var(--primary);
+}
+.auth-switch {
+  background: var(--background);
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.auth-switch button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 1px 3px #0000000d;
+}
+.auth-switch button[aria-pressed="false"] {
+  color: var(--secondary);
+}
+.summary-cell {
+  padding: 22px 24px;
+  min-width: 0;
+}
+.summary-cell + .summary-cell {
+  border-left: 1px solid var(--border);
+}
+.tracker-section {
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+  margin-top: 28px;
+}
+@media (max-width: 639px) {
+  .summary-cell {
+    padding: 18px 20px;
+  }
+  .summary-cell + .summary-cell {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+  th,
+  td {
+    padding: 12px 14px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 639px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }

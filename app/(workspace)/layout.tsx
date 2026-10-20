@@ -12,32 +12,47 @@ export default async function WorkspaceLayout({
 }) {
   const user = await requireUser();
   return (
-    <div className="min-h-screen md:grid md:grid-cols-[220px_1fr]">
-      <aside className="border-b md:border-r bg-[var(--surface)] p-4">
-        <Link href="/dashboard" className="block px-3 pt-3 pb-7">
-          <strong className="text-2xl tracking-tight">GIFFIN</strong>
-          <span className="eyebrow block mt-1">Project Tracker</span>
+    <div className="min-h-screen md:grid md:grid-cols-[208px_minmax(0,1fr)]">
+      <aside className="workspace-sidebar border-b md:border-b-0 md:border-r px-3 py-3 md:sticky md:top-0 md:h-screen md:flex md:flex-col">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-3 px-3 py-4 mb-2 md:mb-8"
+        >
+          <span
+            aria-hidden="true"
+            className="grid h-8 w-8 place-items-center border border-primary/30 rounded bg-[var(--surface)] text-primary text-sm font-semibold"
+          >
+            G
+          </span>
+          <span>
+            <strong className="block text-sm tracking-[.08em] font-semibold">
+              GIFFIN
+            </strong>
+            <span className="block text-[11px] muted mt-0.5">
+              Project tracker
+            </span>
+          </span>
         </Link>
         <WorkspaceNav />
-        <p className="hidden md:block mt-10 px-3 text-xs muted">
-          Project operations
-          <br />
-          Your register. In focus.
-        </p>
+        <div className="hidden md:block mt-auto border-t px-3 pt-5 pb-2">
+          <p className="text-xs font-medium">GIFFIN workspace</p>
+          <p className="text-[11px] muted mt-1">Projects &amp; site progress</p>
+        </div>
       </aside>
       <div className="min-w-0">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b px-5 py-3">
-          <span className="text-sm muted">
-            Workspace / <span className="text-foreground">{user.name}</span>
-          </span>
-          <div className="flex gap-2">
+        <header className="flex items-center justify-between gap-3 border-b px-5 md:px-9 py-3 bg-[var(--surface)]">
+          <span className="text-xs muted">Project workspace</span>
+          <div className="flex items-center gap-2">
+            <span className="hidden sm:block text-xs muted mr-3 max-w-48 truncate">
+              {user.name}
+            </span>
             <ThemeToggle />
             <form action={logout}>
               <Button variant="ghost">Sign out</Button>
             </form>
           </div>
         </header>
-        <main id="main" className="p-5 md:p-9 max-w-[1600px] mx-auto">
+        <main id="main" className="p-5 md:px-9 md:py-8 max-w-[1400px] mx-auto">
           {children}
         </main>
       </div>

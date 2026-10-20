@@ -67,3 +67,9 @@ CI provisions PostgreSQL 17, generates Prisma Client, applies migrations, valida
 ## Current limits
 
 Project editing/deletion, door type deletion, team sharing, password reset, email verification and administration are not implemented. Registration is public; restrict access before storing confidential company records. Contact email and telephone remain unconfigured until verified details are provided.
+
+## Interface direction
+
+Calm, minimal project operations: neutral light and dark surfaces, restrained sage actions, a compact sidebar, consistent 44px controls, and tabular project references. System fonts avoid external font requests. The sidebar keeps Projects active while viewing a project's tracker.
+
+Design review owner for this revision: Codex. Targets (not measured results): WCAG 2.2 AA, desktop/corporate-network p75 LCP <2,500ms, INP <200ms and CLS <0.1; 150KB gzip route JavaScript budget; Lighthouse accessibility >=95 and performance >=90. Existing browser tests cover the primary workflows; performance targets require a measured deployment.

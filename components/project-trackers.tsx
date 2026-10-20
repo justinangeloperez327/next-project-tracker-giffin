@@ -21,11 +21,11 @@ export function SubstationItemForm({
   const [state, action, pending] = useActionState(saveSubstationTracker, {});
   const [values, setValues] = useState(tracker);
   return (
-    <form action={action} className="panel p-5 md:p-6">
+    <form action={action} className="panel p-5">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="item" value={tracker.item} />
       <fieldset disabled={pending}>
-        <legend className="text-xl font-semibold tracking-tight mb-5">
+        <legend className="text-base font-medium tracking-tight mb-5">
           {tracker.item}
         </legend>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -61,7 +61,7 @@ export function SubstationItemForm({
                 remarks: event.target.value,
               }))
             }
-            className="w-full rounded-md border bg-background p-3 text-sm focus-visible:outline-primary"
+            className="w-full rounded border bg-[var(--surface)] p-3 text-sm focus-visible:outline-primary"
           />
         </label>
         <div className="flex flex-wrap items-center gap-4 mt-4">
@@ -99,7 +99,7 @@ export function BusShelterForm({
   const installed = tracker?.installed ?? 0;
   const progress = total ? Math.round((installed / total) * 100) : 0;
   return (
-    <section className="panel p-5 md:p-6 max-w-3xl">
+    <section className="panel p-5 max-w-3xl">
       <h2>Bus shelter installation</h2>
       <p className="muted mt-2 mb-6">
         Update the total number of shelters and the number installed.

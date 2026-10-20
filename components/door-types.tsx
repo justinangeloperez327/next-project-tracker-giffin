@@ -49,11 +49,11 @@ export function DoorTypeForm({
   const [state, action, pending] = useActionState(updateDoorType, {});
   const [values, setValues] = useState(tracker);
   return (
-    <form action={action} className="panel p-5 md:p-6">
+    <form action={action} className="panel p-5">
       <input type="hidden" name="projectId" value={projectId} />
       <input type="hidden" name="id" value={tracker.id} />
       <fieldset disabled={pending}>
-        <legend className="text-xl font-semibold mb-5">{tracker.name}</legend>
+        <legend className="text-base font-medium mb-5">{tracker.name}</legend>
         <label className="mb-5 max-w-lg">
           Door type name
           <Input
@@ -91,7 +91,7 @@ export function DoorTypeForm({
             onChange={(e) =>
               setValues((p) => ({ ...p, remarks: e.target.value }))
             }
-            className="w-full rounded-md border bg-background p-3 text-sm focus-visible:outline-primary"
+            className="w-full rounded border bg-[var(--surface)] p-3 text-sm focus-visible:outline-primary"
           />
         </label>
         <Button className="mt-4">

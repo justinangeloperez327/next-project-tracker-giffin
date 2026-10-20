@@ -23,12 +23,12 @@ export function ProjectRegister({ projects }: { projects: Project[] }) {
   );
   return (
     <>
-      <div className="flex flex-wrap items-end justify-between gap-4 mb-7">
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
         <div>
           <p className="eyebrow mb-3">Project register</p>
           <h1>Projects</h1>
-          <p className="muted mt-2">
-            Contract records and the references behind them.
+          <p className="muted mt-2 text-sm">
+            References, clients, and contract values in one place.
           </p>
         </div>
         <Button onClick={() => setOpen(!open)} aria-expanded={open}>
@@ -143,10 +143,10 @@ export function ProjectRegister({ projects }: { projects: Project[] }) {
                 <tr key={p.id}>
                   <td className="data">{p.so_no}</td>
                   <td className="data">{p.jo_no}</td>
-                  <td className="font-semibold">
+                  <td className="font-medium">
                     <Link
                       href={`/projects/${p.id}`}
-                      className="text-primary underline underline-offset-4"
+                      className="hover:text-primary hover:underline underline-offset-4"
                     >
                       {p.project_name}
                     </Link>
@@ -156,9 +156,7 @@ export function ProjectRegister({ projects }: { projects: Project[] }) {
                     {currency(p.contract_price)}
                   </td>
                   <td>
-                    <span className="bg-muted px-2 py-1 text-xs">
-                      {p.category}
-                    </span>
+                    <span className="text-xs muted">{p.category}</span>
                   </td>
                 </tr>
               ))}
@@ -171,7 +169,7 @@ export function ProjectRegister({ projects }: { projects: Project[] }) {
                   ? "No matching projects"
                   : "Start your project register"}
               </h2>
-              <p className="muted mt-2">
+              <p className="muted mt-2 text-sm">
                 {projects.length
                   ? "Try another search or category."
                   : "Add your first project to track its references and contract value."}

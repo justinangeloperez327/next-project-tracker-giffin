@@ -1,45 +1,49 @@
 import { PublicHeader } from "@/components/public-header";
 import { AuthForm } from "@/components/auth-form";
+import { Check } from "lucide-react";
 export default function Home() {
   return (
     <>
       <PublicHeader />
       <main
         id="main"
-        className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-14 md:min-h-[85vh] md:grid-cols-2 md:gap-24"
+        className="mx-auto grid max-w-5xl items-center gap-10 px-5 py-10 md:min-h-[calc(100svh-136px)] md:grid-cols-2 md:gap-20 md:px-8 md:py-16"
       >
-        <section>
-          <div className="eyebrow mb-6">GIFFIN / Project operations</div>
-          <h1 className="max-w-lg text-5xl md:text-6xl">
-            Every project.
-            <br />A clearer picture.
+        <section className="max-w-md">
+          <p className="eyebrow mb-5">Projects &amp; site progress</p>
+          <h1 className="text-3xl md:text-[38px] leading-[1.2]">
+            A little more clarity.
+            <br />
+            Every working day.
           </h1>
-          <p className="muted mt-6 max-w-md">
-            Track contract values, clients, and project references in one
-            focused workspace.
+          <p className="muted mt-5 max-w-sm text-sm">
+            One place for your project references, contract values, and progress
+            on site.
           </p>
-          <div className="mt-10 border-l-4 border-primary pl-5">
-            <p className="text-sm font-semibold">
-              Built around your project register
-            </p>
-            <p className="muted text-sm">
-              SO number · JO number · Contract value
-            </p>
-          </div>
-          <div className="mt-10 flex flex-wrap gap-2">
-            {["Substation", "Guardrail", "Handrail", "Bus Shelters"].map(
-              (c) => (
-                <span key={c} className="border px-3 py-2 text-xs">
-                  {c}
-                </span>
-              ),
-            )}
-          </div>
+          <ul className="mt-8 grid gap-4 text-sm">
+            {[
+              "Keep SO and JO references together",
+              "Track dates for each door type",
+              "See how many shelters are installed",
+            ].map((text) => (
+              <li key={text} className="flex gap-3 items-center">
+                <Check
+                  size={15}
+                  className="text-primary shrink-0"
+                  aria-hidden="true"
+                />
+                {text}
+              </li>
+            ))}
+          </ul>
+          <p className="border-t pt-5 mt-8 text-xs muted leading-6">
+            Substation · Bus Shelters · Guardrail · Handrail
+          </p>
         </section>
         <AuthForm />
       </main>
-      <footer className="border-t px-6 py-5 text-xs muted">
-        GIFFIN · Project Tracker
+      <footer className="mx-auto max-w-6xl px-5 md:px-8 py-5 text-[11px] muted">
+        GIFFIN / Project workspace
       </footer>
     </>
   );

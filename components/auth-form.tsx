@@ -76,9 +76,9 @@ function Form({ mode }: { mode: "login" | "register" }) {
 export function AuthForm() {
   const [mode, setMode] = useState<"login" | "register">("login");
   return (
-    <section className="panel p-6 md:p-9 w-full max-w-md">
+    <section className="panel p-6 md:p-8 w-full max-w-md md:justify-self-end">
       <div
-        className="mb-7 grid grid-cols-2 border-b"
+        className="auth-switch mb-7 grid grid-cols-2"
         role="group"
         aria-label="Account action"
       >

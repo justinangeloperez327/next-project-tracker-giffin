@@ -3,51 +3,60 @@ import { requireUser } from "@/lib/auth";
 import { getProjects } from "@/lib/projects";
 import { categories, currency } from "@/lib/project-types";
 import { Button } from "@/components/ui/button";
+import { ArrowUpRight, FolderOpen } from "lucide-react";
 export default async function Dashboard() {
   const user = await requireUser();
   const projects = await getProjects(user.id);
   const total = projects.reduce((s, p) => s + Number(p.contract_price), 0);
   return (
     <>
-      <div className="flex flex-wrap justify-between items-end gap-4 mb-8">
+      <div className="flex flex-wrap justify-between items-end gap-4 mb-7">
         <div>
-          <p className="eyebrow mb-3">Portfolio overview</p>
+          <p className="eyebrow mb-2">Overview</p>
           <h1>Dashboard</h1>
-          <p className="muted mt-2">A clear view of your project register.</p>
+          <p className="muted mt-2 text-sm">Your projects, at a glance.</p>
         </div>
         <Button asChild>
-          <Link href="/projects">View projects</Link>
+          <Link href="/projects">
+            View projects
+            <ArrowUpRight size={15} aria-hidden="true" />
+          </Link>
         </Button>
       </div>
-      <div className="grid gap-4 sm:grid-cols-3 mb-8">
+      <section
+        aria-label="Project summary"
+        className="panel grid sm:grid-cols-3 mb-7"
+      >
         {[
           ["Total projects", projects.length],
           ["Contract value", currency(total)],
           ["Clients", new Set(projects.map((p) => p.client)).size],
         ].map(([label, value]) => (
-          <section className="panel p-6" key={label}>
-            <p className="muted text-sm">{label}</p>
-            <p className="data text-2xl mt-4 break-words">{value}</p>
-          </section>
+          <div className="summary-cell" key={label}>
+            <p className="muted text-xs">{label}</p>
+            <p className="text-[25px] tracking-tight font-medium mt-2 break-words tabular-nums">
+              {value}
+            </p>
+          </div>
         ))}
-      </div>
-      <div className="grid lg:grid-cols-[1fr_1.3fr] gap-6">
-        <section className="panel p-6">
+      </section>
+      <div className="grid lg:grid-cols-[1fr_1.4fr] gap-5">
+        <section className="panel p-5 md:p-6">
           <h2>Projects by category</h2>
-          <p className="muted text-sm mt-1 mb-6">
-            Distribution across your register
+          <p className="muted text-xs mt-1 mb-6">
+            Across your project register
           </p>
           {categories.map((c) => {
             const count = projects.filter((p) => p.category === c).length;
             return (
-              <div key={c} className="mb-5">
-                <div className="flex justify-between text-sm mb-2">
+              <div key={c} className="mb-5 last:mb-0">
+                <div className="flex justify-between text-[13px] mb-2">
                   <span>{c}</span>
-                  <span className="data">{count}</span>
+                  <span className="muted tabular-nums">{count}</span>
                 </div>
-                <div className="h-2 bg-muted">
+                <div className="h-1 bg-muted">
                   <div
-                    className="h-2 bg-primary"
+                    className="h-1 bg-primary/70"
                     style={{
                       width: `${projects.length ? (count / projects.length) * 100 : 0}%`,
                     }}
@@ -57,30 +66,44 @@ export default async function Dashboard() {
             );
           })}
         </section>
-        <section className="panel p-6">
-          <h2>Recently added</h2>
+        <section className="panel p-5 md:p-6">
+          <div className="flex justify-between gap-4 items-center">
+            <h2>Recently added</h2>
+            <span className="text-[11px] muted">Latest projects</span>
+          </div>
           {projects.length ? (
-            projects.slice(0, 5).map((p) => (
-              <div
-                key={p.id}
-                className="border-b py-4 flex justify-between gap-4"
-              >
-                <div>
-                  <p className="font-semibold">{p.project_name}</p>
-                  <p className="muted text-xs data">
-                    {p.so_no} / {p.jo_no}
+            <div className="mt-3">
+              {projects.slice(0, 5).map((p) => (
+                <Link
+                  href={`/projects/${p.id}`}
+                  key={p.id}
+                  className="flex flex-wrap items-center justify-between gap-3 border-b last:border-0 py-4 hover:text-primary"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-[13px]">{p.project_name}</p>
+                    <p className="muted text-[11px] data mt-1">
+                      {p.so_no} / {p.jo_no}
+                    </p>
+                  </div>
+                  <p className="text-xs tabular-nums">
+                    {currency(p.contract_price)}
                   </p>
-                </div>
-                <p className="text-sm data">{currency(p.contract_price)}</p>
-              </div>
-            ))
+                </Link>
+              ))}
+            </div>
           ) : (
-            <div className="py-12">
-              <p>No projects yet.</p>
-              <p className="muted text-sm mt-2">
-                Add a project to build your portfolio overview.
+            <div className="py-10 text-center">
+              <FolderOpen
+                size={24}
+                strokeWidth={1.3}
+                className="mx-auto text-primary mb-4"
+                aria-hidden="true"
+              />
+              <p className="text-sm font-medium">No projects yet.</p>
+              <p className="muted text-xs mt-2">
+                Start with a project. Its tracker will be ready when you are.
               </p>
-              <Button asChild className="mt-5">
+              <Button asChild variant="outline" className="mt-5">
                 <Link href="/projects">Add your first project</Link>
               </Button>
             </div>

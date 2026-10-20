@@ -20,16 +20,18 @@ export function WorkspaceNav() {
   return (
     <nav
       aria-label="Workspace navigation"
-      className="flex flex-wrap gap-1 md:flex-col"
+      className="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible"
     >
       {links.map(({ href, name, icon: Icon }) => (
         <Link
           key={href}
           href={href}
-          aria-current={path === href ? "page" : undefined}
-          className={`flex items-center gap-3 rounded-md px-3 py-3 text-sm ${path === href ? "bg-muted font-semibold text-primary" : "hover:bg-muted"}`}
+          aria-current={
+            path === href || path.startsWith(href + "/") ? "page" : undefined
+          }
+          className="nav-link"
         >
-          <Icon size={17} />
+          <Icon size={16} strokeWidth={1.6} aria-hidden="true" />
           {name}
         </Link>
       ))}

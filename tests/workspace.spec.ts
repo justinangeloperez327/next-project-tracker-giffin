@@ -5,6 +5,12 @@ test("public pages, theme, and protected workspace", async ({ page }) => {
   await expect(
     page.getByRole("heading", { name: "Welcome back" }),
   ).toBeVisible();
+  await test
+    .info()
+    .attach("Homepage", {
+      body: await page.screenshot({ fullPage: true }),
+      contentType: "image/png",
+    });
   await page.getByRole("link", { name: "About", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Project records, kept together." }),
@@ -37,6 +43,12 @@ test("register, create and filter project, update profile, logout, login and iso
     .getByRole("button", { name: "Create account", exact: true })
     .click();
   await expect(page).toHaveURL(/dashboard/);
+  await test
+    .info()
+    .attach("Dashboard", {
+      body: await page.screenshot({ fullPage: true }),
+      contentType: "image/png",
+    });
   await page.getByRole("link", { name: "Projects", exact: true }).click();
   await page.getByRole("button", { name: "Add project", exact: true }).click();
   await page.getByLabel("SO No", { exact: true }).fill("SO-2026-1");
@@ -54,6 +66,12 @@ test("register, create and filter project, update profile, logout, login and iso
   await expect(
     page.getByRole("cell", { name: "Abu Dhabi Shelter", exact: true }),
   ).toBeVisible();
+  await test
+    .info()
+    .attach("Project register", {
+      body: await page.screenshot({ fullPage: true }),
+      contentType: "image/png",
+    });
   await page.getByLabel("Filter category").selectOption("Handrail");
   await expect(
     page.getByRole("heading", { name: "No matching projects" }),
