@@ -65,14 +65,14 @@ export function ProjectRegister({ projects }: { projects: Project[] }) {
                 required
               />
             </label>
-            <label>
-              Category
-              <select name="category" required>
+            <div className="grid gap-2">
+              <label htmlFor="project-category">Category</label>
+              <select id="project-category" name="category" required>
                 {categories.map((c) => (
                   <option key={c}>{c}</option>
                 ))}
               </select>
-            </label>
+            </div>
           </div>
           {state.error && (
             <p role="alert" className="mt-4 text-red-700 dark:text-red-300">
